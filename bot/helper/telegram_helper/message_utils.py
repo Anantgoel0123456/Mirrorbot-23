@@ -1,11 +1,10 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext, CallbackQueryHandler
+from telegram import InlineKeyboardMarkup
 from telegram.message import Message
 from telegram.update import Update
-import psutil, shutil
+import psutil
 import time
-from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, bot, \
-    status_reply_dict, status_reply_dict_lock, download_dict, download_dict_lock, botStartTime, dispatcher
+from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, botStartTime, bot, \
+    status_reply_dict, status_reply_dict_lock, download_dict, download_dict_lock
 from bot.helper.ext_utils.bot_utils import get_readable_message, get_readable_file_size, get_readable_time, MirrorStatus
 from telegram.error import TimedOut, BadRequest
 
@@ -14,13 +13,13 @@ def sendMessage(text: str, bot, update: Update):
     try:
         return bot.send_message(update.message.chat_id,
                             reply_to_message_id=update.message.message_id,
-                            text=text, allow_sending_without_reply=True, parse_mode='HTMl')
+                            text=text, parse_mode='HTMl')
     except Exception as e:
         LOGGER.error(str(e))
 def sendMarkup(text: str, bot, update: Update, reply_markup: InlineKeyboardMarkup):
     return bot.send_message(update.message.chat_id,
                             reply_to_message_id=update.message.message_id,
-                            text=text, reply_markup=reply_markup, allow_sending_without_reply=True, parse_mode='HTMl')
+                            text=text, reply_markup=reply_markup, parse_mode='HTMl')
 
 def editMessage(text: str, message: Message, reply_markup=None):
     try:
@@ -69,15 +68,19 @@ def delete_all_messages():
 
 def update_all_messages():
     msg = get_readable_message()
+    msg += f"<b>BOT UPTIME 🟢 :</b> <b>{get_readable_time((time.time() - botStartTime))}</b>\n\n" \
+           f"<b>CPU : {psutil.cpu_percent()}%</b>" \
+           f" <b>RAM : {psutil.virtual_memory().percent}%</b>" \
+           f" <b>DISK : {psutil.disk_usage('/').percent}%</b>"
     with download_dict_lock:
         dlspeed_bytes = 0
         uldl_bytes = 0
         for download in list(download_dict.values()):
             speedy = download.speed()
             if download.status() == MirrorStatus.STATUS_DOWNLOADING:
-                if 'K' in speedy:
+                if 'KiB/s' in speedy:
                     dlspeed_bytes += float(speedy.split('K')[0]) * 1024
-                elif 'M' in speedy:
+                elif 'MiB/s' in speedy:
                     dlspeed_bytes += float(speedy.split('M')[0]) * 1048576 
             if download.status() == MirrorStatus.STATUS_UPLOADING:
                 if 'KB/s' in speedy:
@@ -86,31 +89,35 @@ def update_all_messages():
                     uldl_bytes += float(speedy.split('M')[0]) * 1048576
         dlspeed = get_readable_file_size(dlspeed_bytes)
         ulspeed = get_readable_file_size(uldl_bytes)
-        msg += f"<b>DL:</b> {dlspeed}ps 🔻 | <b>UL:</b> {ulspeed}ps 🔺"
+        msg += f"\n<b>DOWN :</b> <b>{dlspeed}ps</b> 🌝 <b>||</b> <b>UP :</b> <b>{ulspeed}ps</b> 🌚\n"
     with status_reply_dict_lock:
         for chat_id in list(status_reply_dict.keys()):
             if status_reply_dict[chat_id] and msg != status_reply_dict[chat_id].text:
                 if len(msg) == 0:
                     msg = "Starting DL"
                 try:
-                    keyboard = [[InlineKeyboardButton("♻️ Stats", callback_data="stats_")]]
-                    editMessage(msg, status_reply_dict[chat_id], reply_markup=InlineKeyboardMarkup(keyboard))
+                    editMessage(msg, status_reply_dict[chat_id])
                 except Exception as e:
                     LOGGER.error(str(e))
                 status_reply_dict[chat_id].text = msg
 
 
+
 def sendStatusMessage(msg, bot):
     progress = get_readable_message()
+    progress += f"<b>BOT UPTIME 🟢 :</b> <b>{get_readable_time((time.time() - botStartTime))}</b>\n\n" \
+           f"<b>CPU : {psutil.cpu_percent()}%</b>" \
+           f" <b>RAM : {psutil.virtual_memory().percent}%</b>" \
+           f" <b>DISK : {psutil.disk_usage('/').percent}%</b>"
     with download_dict_lock:
         dlspeed_bytes = 0
         uldl_bytes = 0
         for download in list(download_dict.values()):
             speedy = download.speed()
             if download.status() == MirrorStatus.STATUS_DOWNLOADING:
-                if 'K' in speedy:
+                if 'KiB/s' in speedy:
                     dlspeed_bytes += float(speedy.split('K')[0]) * 1024
-                elif 'M' in speedy:
+                elif 'MiB/s' in speedy:
                     dlspeed_bytes += float(speedy.split('M')[0]) * 1048576 
             if download.status() == MirrorStatus.STATUS_UPLOADING:
                 if 'KB/s' in speedy:
@@ -119,7 +126,7 @@ def sendStatusMessage(msg, bot):
                     uldl_bytes += float(speedy.split('M')[0]) * 1048576
         dlspeed = get_readable_file_size(dlspeed_bytes)
         ulspeed = get_readable_file_size(uldl_bytes)
-        progress += f"<b>DL:</b> {dlspeed}ps 🔻 | <b>UL:</b> {ulspeed}ps 🔺"
+        progress += f"\n<b>DOWN :</b> <b>{dlspeed}ps</b> 🌝 <b>||</b> <b>UP :</b> <b>{ulspeed}ps</b> 🌚\n"
     with status_reply_dict_lock:
         if msg.message.chat.id in list(status_reply_dict.keys()):
             try:
@@ -134,27 +141,3 @@ def sendStatusMessage(msg, bot):
             progress = "Starting DL"
         message = sendMessage(progress, bot, msg)
         status_reply_dict[msg.message.chat.id] = message
-
-
-def pop_up_stats(update, context):
-    query = update.callback_query
-    stats = bot_sys_stats()
-    query.answer(text=stats, show_alert=True)
-
-def bot_sys_stats():
-    currentTime = get_readable_time(time.time() - botStartTime)
-    cpu = psutil.cpu_percent()
-    mem = psutil.virtual_memory().percent
-    disk = psutil.disk_usage("/").percent
-    total, used, free = shutil.disk_usage('.')
-    free = get_readable_file_size(free)
-    stats = f"""
-Bot Uptime: {currentTime}
-Free Disk: {free}
-CPU: {cpu}%
-RAM: {mem}%
-DISK: {disk}%
-"""
-    return stats
-
-dispatcher.add_handler(CallbackQueryHandler(pop_up_stats, pattern="stats_"))
