@@ -29,4 +29,14 @@ lk21
 feedparser
 gitpython
 aiohttp
+aria2p
 appdirs
+beautifulsoup4
+heroku3
+js2py
+lk21
+pybase64
+python-dotenv
+python-magic
+pytz
+tenacity
