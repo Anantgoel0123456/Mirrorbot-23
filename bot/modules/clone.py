@@ -18,7 +18,7 @@ def cloneNode(update, context):
                sendMessage(res, context.bot, update)
                return
             if STOP_DUPLICATE_CLONE:
-                LOGGER.info(f"🔎 Checking File/Folder if already in Drive...")
+                LOGGER.info(f"Checking File/Folder if already in Drive...")
                 smsg, button = gd.drive_list(name)
                 if smsg:
                     msg3 = "File/Folder is already available in Drive.\nHere are the search results:"
@@ -38,7 +38,7 @@ def cloneNode(update, context):
                     if clonesize > limitint * 1024**4:
                         sendMessage(msg2, context.bot, update)
                         return              
-        msg = sendMessage(f"📚 Cloning : <code>{link}</code>", context.bot, update)
+        msg = sendMessage(f"Cloning: <code>{link}</code>", context.bot, update)
         result, button = gd.clone(link)
         deleteMessage(context.bot, msg)
         if button == "":
@@ -49,10 +49,10 @@ def cloneNode(update, context):
             else:
                 uname = f'<a href="tg://user?id={update.message.from_user.id}">{update.message.from_user.first_name}</a>'
             if uname is not None:
-                cc = f'\n\n👤 𝗖𝗹𝗼𝗻𝗲𝗿 : {uname}\n\n🔥 𝗣𝗿𝗶𝗶𝗶𝗶𝘆𝗼 𝗠𝗶𝗿𝗿𝗼𝗿 𝗭𝗼𝗻𝗘\n\n🔥 𝗚𝗿𝗼𝘂𝗽 : @PriiiiyoMirror\n\n▫️#Uploaded To Team Drive ✓ \n\n🚫 𝗗𝗼 𝗡𝗼𝘁 𝗦𝗵𝗮𝗿𝗲 𝗜𝗻𝗱𝗲𝘅 𝗟𝗶𝗻𝗸 \n\n✅ 𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗕𝘆 : @PriiiiyoBOTs'
+                cc = f'\n\ncc: {uname}'
             sendMarkup(result + cc, context.bot, update, button)
     else:
         sendMessage('Provide G-Drive Shareable Link to Clone.', context.bot, update)
 
-clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
 dispatcher.add_handler(clone_handler)

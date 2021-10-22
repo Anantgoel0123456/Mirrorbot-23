@@ -63,11 +63,11 @@ def dyno_usage(update, context):
             AppMinutes = math.floor(AppQuotaUsed % 60)
             
             sendMessage(
-                f"<b>⌛ Dyno Usage for</b> <code>{app.name}</code>:\n"
+                f"<b>Dyno Usage for</b> <code>{app.name}</code>:\n"
                 f"• <code>{AppHours}</code> <b>Hours and</b> <code>{AppMinutes}</code> <b>Minutes - {AppPercent}%</b>\n\n"
-                "<b>⏳ Dyno Remaining this month:</b>\n"
+                "<b>Dyno Remaining this month:</b>\n"
                 f"• <code>{hours}</code> <b>Hours and</b> <code>{minutes}</code> <b>Minutes - {quota_percent}%</b>\n\n"
-                "<b>⏱️ Estimated Dyno Expired:</b>\n"
+                "<b>Estimated Dyno Expired:</b>\n"
                 f"• <code>{day}</code> <b>Days</b>",
                 context.bot,
                 update
@@ -76,6 +76,6 @@ def dyno_usage(update, context):
 
 
 dyno_usage_handler = CommandHandler(command=BotCommands.UsageCommand, callback=dyno_usage,
-                                    filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
+                                    filters=CustomFilters.owner_filter | CustomFilters.sudo_user)
                                     
 dispatcher.add_handler(dyno_usage_handler)

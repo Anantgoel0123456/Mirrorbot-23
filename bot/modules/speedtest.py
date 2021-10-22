@@ -17,17 +17,17 @@ def speedtest(update, context):
     result = test.results.dict()
     path = (result['share'])
     string_speed = f'''
-<b>🖥️ Server / Stats of The Machine 🖥️</b>
-<b>💳 Name:</b> <code>{result['server']['name']}</code>
-<b>⛳️ Country:</b> <code>{result['server']['country']}, {result['server']['cc']}</code>
-<b>💰 Sponsor:</b> <code>{result['server']['sponsor']}</code>
-<b>🏬 ISP:</b> <code>{result['client']['isp']}</code>
-    
-<b>✈️ SpeedTest Results 💨</b>
-<b>🔺 Upload:</b> <code>{speed_convert(result['upload'] / 8)}</code>
-<b>🔻 Download:</b>  <code>{speed_convert(result['download'] / 8)}</code>
-<b>📶 Ping:</b> <code>{result['ping']} ms</code>
-<b>🏬 ISP:</b> <code>{result['client']['isp']}</code>
+<b>Server</b>
+<b>Name:</b> <code>{result['server']['name']}</code>
+<b>Country:</b> <code>{result['server']['country']}, {result['server']['cc']}</code>
+<b>Sponsor:</b> <code>{result['server']['sponsor']}</code>
+<b>ISP:</b> <code>{result['client']['isp']}</code>
+
+<b>SpeedTest Results</b>
+<b>Upload:</b> <code>{speed_convert(result['upload'] / 8)}</code>
+<b>Download:</b>  <code>{speed_convert(result['download'] / 8)}</code>
+<b>Ping:</b> <code>{result['ping']} ms</code>
+<b>ISP Rating:</b> <code>{result['client']['isprating']}</code>
 '''
     ed_msg.delete()
     try:
@@ -47,6 +47,6 @@ def speed_convert(size):
 
 
 SPEED_HANDLER = CommandHandler(BotCommands.SpeedCommand, speedtest, 
-                                                  filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+                                                  filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
 
 dispatcher.add_handler(SPEED_HANDLER)
